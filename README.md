@@ -1,61 +1,62 @@
-# Riemann Sums → The Integral
+# 📊 Riemann Sums → The Integral
 
 An interactive educational simulation that teaches one central idea:
 
 > **A definite integral is the limit of Riemann-sum approximations as the number of rectangles increases and their width approaches zero.**
 
-Built for a Class 11/12 mathematics concept as part of a Web Developer Internship hiring assessment. The app runs entirely in the browser — no backend, no database, no authentication.
+**✨ Built for a Class 11/12 mathematics concept** as part of a Web Developer Internship hiring assessment.  
+🌐 The app runs entirely in the browser — no backend, no database, no authentication.
 
 ---
 
-## Overview
+## 🎯 Overview
 
-The simulation lets a student:
+**The simulation lets a student:**
 
-- Pick a function (`x²`, `x`, `sin(x)`, `x³`), an interval `[a, b]`, a number of rectangles `n`, and a sampling method (Left / Midpoint / Right).
-- Watch rectangles render on a live coordinate graph that scales to the data.
-- Read the live mathematics: `Δx`, the Riemann sum, the exact integral, absolute and percentage error.
-- Press **Watch the Integral Emerge** to animate `n` from 2 → 256 and see the approximation converge to the exact area.
-- Compare Left / Midpoint / Right sums side by side.
-- See a real (not faked) error-vs-`n` chart that shrinks as `n` grows.
+- 📝 Pick a function (`x²`, `x`, `sin(x)`, `x³`), an interval `[a, b]`, a number of rectangles `n`, and a sampling method (Left / Midpoint / Right).
+- 📈 Watch rectangles render on a live coordinate graph that scales to the data.
+- 🔢 Read the live mathematics: `Δx`, the Riemann sum, the exact integral, absolute and percentage error.
+- ▶️ Press **Watch the Integral Emerge** to animate `n` from 2 → 256 and see the approximation converge to the exact area.
+- 🔄 Compare Left / Midpoint / Right sums side by side.
+- 📉 See a real (not faked) error-vs-`n` chart that shrinks as `n` grows.
 
-The graph is the visual centerpiece; every number on screen is computed from the current parameters.
+✨ **The graph is the visual centerpiece;** every number on screen is computed from the current parameters.
 
 ---
 
-## Pedagogical Choice
+## 💡 Pedagogical Choice
 
-### What misconception does this simulation target?
+### ❓ What misconception does this simulation target?
 
 > "How can a collection of rectangles possibly represent the area under a *curved* function?"
 
 Students accept that a rectangle has an area, and that a curve has *some* area, but the bridge between the two — a limit of sums of rectangles — is usually taught symbolically and feels like a definition rather than a discovery.
 
-### How does the visual architecture resolve it?
+### 🎨 How does the visual architecture resolve it?
 
-Instead of stating "the limit of the Riemann sum is the integral," the simulation lets the student **see the gap close**:
+Instead of stating "the limit of the Riemann sum is the integral," the simulation lets the student **see the gap close:**
 
 1. At `n = 4` the rectangles clearly over- or under-shoot the curve.
 2. The **exact area is drawn as a dashed green outline** under the curve, so the "target" is always visible.
-3. The **Aha Moment** animation grows `n` through 2 → 4 → 8 → … → 256. The student watches the rectangles thin out, hug the curve, and the blue approximation readout slide toward the green exact value.
+3. The **🎉 Aha Moment** animation grows `n` through 2 → 4 → 8 → … → 256. The student watches the rectangles thin out, hug the curve, and the blue approximation readout slide toward the green exact value.
 4. A **prediction prompt** asks "what happens to the error?" *before* the animation, turning a passive animation into an active hypothesis test.
 5. The **error chart** plots the actual calculated error at each power of two, giving a second, quantitative view of the same convergence.
 
-The convergence is communicated by the visual change itself, not by a text popup — exactly the brief's requirement.
+✅ **The convergence is communicated by the visual change itself,** not by a text popup — exactly the brief's requirement.
 
 ---
 
-## Mathematical Foundation
+## 📐 Mathematical Foundation
 
-All calculations live in `src/utils/` and are pure functions with no rendering concerns, so they can be explained and tested independently.
+**All calculations live in `src/utils/`** and are pure functions with no rendering concerns, so they can be explained and tested independently.
 
-### Rectangle width
+### ⏏️ Rectangle width
 
 ```
 Δx = (b − a) / n
 ```
 
-### Sample point
+### 🎯 Sample point
 
 ```
 left:     xᵢ* = a + i·Δx          (left edge of subinterval i)
@@ -63,14 +64,14 @@ right:    xᵢ* = a + (i+1)·Δx      (right edge)
 midpoint: xᵢ* = a + (i + ½)·Δx    (middle)
 ```
 
-### Rectangle area and Riemann sum
+### 📦 Rectangle area and Riemann sum
 
 ```
 areaᵢ = f(xᵢ*) · Δx
 Sₙ    = Σᵢ₌₀ⁿ⁻¹ areaᵢ
 ```
 
-### Exact definite integral (analytical, per function)
+### ∫ Exact definite integral (analytical, per function)
 
 Implemented with the Fundamental Theorem of Calculus, `F(b) − F(a)`:
 
@@ -83,14 +84,14 @@ Implemented with the Fundamental Theorem of Calculus, `F(b) − F(a)`:
 
 Only functions with a correct analytical integrator are offered. No fake exact values are ever displayed.
 
-### Error
+### ⚠️ Error
 
 ```
 absolute error = |Sₙ − ∫|
 percent error   = |Sₙ − ∫| / |∫| × 100
 ```
 
-### Convergence
+### 📉 Convergence
 
 ```
 limₙ→∞ Sₙ = ∫ₐᵇ f(x) dx
@@ -262,5 +263,6 @@ No fabricated AI mistakes are listed here — only issues that actually occurred
 6. **Why midpoint is exact for linear functions** — the midpoint rule samples the average height of a linear function, so the error is zero regardless of `n`.
 7. **Why the error chart is log-spaced on x** — the sequence doubles, so linear spacing would cram the small-`n` points together.
 8. **The prediction interaction** — it exists to make the animation an active hypothesis test, not passive viewing.
-#   r i e m a n n - s u m - v i s u a l i z e r  
+#   r i e m a n n - s u m - v i s u a l i z e r 
+ 
  
