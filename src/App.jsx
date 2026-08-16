@@ -28,6 +28,7 @@ export default function App() {
   const [b, setB] = useState(2);
   const [n, setN] = useState(8);
   const [running, setRunning] = useState(false);
+  const [graphTransition, setGraphTransition] = useState(null);
 
   const [builtinId, setBuiltinId] = useState("square");
   const [customFn, setCustomFn] = useState(null);
@@ -93,6 +94,7 @@ export default function App() {
               approximate={sum}
               exact={exact}
               rectOpacity={1}
+              transition={graphTransition}
             />
           </section>
 
@@ -135,9 +137,15 @@ export default function App() {
             b={b}
             method={method}
             n={n}
+            dx={dx}
+            approximate={sum}
+            exact={exact}
+            absError={absErr}
+            pctError={pctErr}
             setN={setN}
             running={running}
             setRunning={setRunning}
+            setGraphTransition={setGraphTransition}
           />
         </div>
 

@@ -47,3 +47,17 @@ export function percentError(approx, exact) {
 }
 
 export const N_SEQUENCE = [2, 4, 8, 16, 32, 64, 128, 256];
+
+export const CONVERGENCE_SEQUENCE = [4, 8, 16, 32, 64, 128, 256];
+
+export const SUBDIVISION_SEQUENCE = [1, 2, 4, 8, 16];
+
+export const STAGE_MESSAGES = {
+  4: "With fewer rectangles, the approximation is relatively rough.",
+  8: "The interval is split further, so the estimate starts improving.",
+  16: "More rectangles give a closer approximation.",
+  32: "The strips are thinner, and the sum tracks the curve better.",
+  64: "The rectangles are becoming narrower and fitting the curve more closely.",
+  128: "At this scale, the approximation is converging strongly.",
+  256: "The approximation is now very close to the exact integral.",
+};

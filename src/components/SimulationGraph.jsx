@@ -4,6 +4,7 @@ import {
   computeViewBox,
   niceStep,
 } from "@/utils/coordinateMapper";
+import { riemannSum } from "@/utils/riemann";
 
 const PAD = { top: 20, right: 20, bottom: 36, left: 48 };
 
@@ -17,6 +18,7 @@ export default function SimulationGraph({
   approximate,
   exact,
   rectOpacity = 1,
+  transition = null,
 }) {
   const canvasRef = useRef(null);
   const wrapRef = useRef(null);
@@ -51,6 +53,7 @@ export default function SimulationGraph({
         approximate,
         exact,
         rectOpacity,
+        transition,
       });
     };
 
@@ -66,7 +69,7 @@ export default function SimulationGraph({
       ro.disconnect();
       if (raf) cancelAnimationFrame(raf);
     };
-  }, [fn, a, b, dx, rectangles, method, approximate, exact, rectOpacity]);
+  }, [fn, a, b, dx, rectangles, method, approximate, exact, rectOpacity, transition]);
 
   return (
     <div
@@ -82,6 +85,8 @@ export default function SimulationGraph({
 
 function renderScene(ctx, cssW, cssH, p) {
   const f = p.fn.f;
+  const transitionRects = getTransitionRectangles(p);
+  const drawRectangles = transitionRects ?? p.rectangles;
 
   // Sample the curve across the visible x-range for view-box + drawing.
   const xLo = p.a - 0.6;
@@ -94,7 +99,7 @@ function renderScene(ctx, cssW, cssH, p) {
   }
   const yVals = curve.map((c) => c.y);
   // Include rectangle tops so they're always visible.
-  for (const r of p.rectangles) yVals.push(r.height);
+  for (const r of drawRectangles) yVals.push(r.height);
 
   const view = computeViewBox(p.a, p.b, yVals);
   const px = {
@@ -149,7 +154,10 @@ function renderScene(ctx, cssW, cssH, p) {
 
   // --- Rectangles ---
   const op = p.rectOpacity;
-  for (const r of p.rectangles) {
+  const nForEmphasis = drawRectangles.length;
+  const strokeAlpha = nForEmphasis <= 8 ? 0.98 : nForEmphasis <= 32 ? 0.88 : 0.72;
+  const fillAlphaBase = nForEmphasis <= 8 ? 0.32 : nForEmphasis <= 32 ? 0.24 : 0.16;
+  for (const r of drawRectangles) {
     const sx0 = m.toScreenX(r.x0);
     const sx1 = m.toScreenX(r.x1);
     const syH = m.toScreenY(r.height);
@@ -158,13 +166,14 @@ function renderScene(ctx, cssW, cssH, p) {
     const h = Math.abs(syH - sy0);
     const w = sx1 - sx0;
     // Fill: blue, semi-transparent; signed area handled by drawing across x-axis.
+    const localOpacity = Number.isFinite(r.opacity) ? r.opacity : 1;
     ctx.fillStyle = r.height >= 0
-      ? `rgba(59,130,246,${0.22 * op})`
-      : `rgba(239,68,68,${0.22 * op})`;
+      ? `rgba(59,130,246,${fillAlphaBase * op * localOpacity})`
+      : `rgba(239,68,68,${fillAlphaBase * op * localOpacity})`;
     ctx.fillRect(sx0, top, Math.max(w - 0.5, 0.5), h);
     ctx.strokeStyle = r.height >= 0
-      ? `rgba(37,99,235,${0.9 * op})`
-      : `rgba(220,38,38,${0.9 * op})`;
+      ? `rgba(37,99,235,${strokeAlpha * op * localOpacity})`
+      : `rgba(220,38,38,${strokeAlpha * op * localOpacity})`;
     ctx.lineWidth = 1;
     ctx.strokeRect(sx0 + 0.25, top + 0.25, Math.max(w - 0.5, 0.5), Math.max(h - 0.5, 0.5));
   }
@@ -236,6 +245,71 @@ function renderScene(ctx, cssW, cssH, p) {
     ctx.fillStyle = "rgb(5,150,105)";
     ctx.fillText(`Exact   = ${trimNum(p.exact, 5)}`, lx, ly);
   }
+}
+
+function getTransitionRectangles(p) {
+  if (!p.transition || !p.transition.active) return null;
+  const fromN = p.transition.fromN;
+  const toN = p.transition.toN;
+  if (!Number.isFinite(fromN) || !Number.isFinite(toN) || toN !== fromN * 2) {
+    return null;
+  }
+
+  const fromRectangles = riemannSum(p.fn, p.a, p.b, fromN, p.method).rectangles;
+  const toRectangles = riemannSum(p.fn, p.a, p.b, toN, p.method).rectangles;
+  const t = easeInOut(clamp01(p.transition.progress ?? 0));
+  const rectangles = [];
+
+  for (let i = 0; i < fromRectangles.length; i++) {
+    const parent = fromRectangles[i];
+    const leftChild = toRectangles[i * 2];
+    const rightChild = toRectangles[i * 2 + 1];
+    if (!parent || !leftChild || !rightChild) continue;
+
+    const mid = (parent.x0 + parent.x1) / 2;
+
+    // Fade the parent out while the two children grow out from the split point.
+    rectangles.push({
+      x0: parent.x0,
+      x1: parent.x1,
+      height: lerp(parent.height, (leftChild.height + rightChild.height) / 2, t),
+      sample: parent.sample,
+      area: parent.area,
+      opacity: 1 - t,
+    });
+
+    rectangles.push({
+      x0: lerp(mid, leftChild.x0, t),
+      x1: lerp(mid, leftChild.x1, t),
+      height: lerp(parent.height, leftChild.height, t),
+      sample: leftChild.sample,
+      area: leftChild.area,
+      opacity: t,
+    });
+
+    rectangles.push({
+      x0: lerp(mid, rightChild.x0, t),
+      x1: lerp(mid, rightChild.x1, t),
+      height: lerp(parent.height, rightChild.height, t),
+      sample: rightChild.sample,
+      area: rightChild.area,
+      opacity: t,
+    });
+  }
+
+  return rectangles;
+}
+
+function clamp01(v) {
+  return Math.min(1, Math.max(0, v));
+}
+
+function lerp(a, b, t) {
+  return a + (b - a) * t;
+}
+
+function easeInOut(t) {
+  return t * t * (3 - 2 * t);
 }
 
 function trimNum(v, digits = 2) {
