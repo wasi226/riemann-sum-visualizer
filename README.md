@@ -1,5 +1,7 @@
 # Riemann Sums to the Integral
 
+Live demo: https://riemann-sum-visualizer.vercel.app/
+
 An interactive browser simulation that teaches one core idea:
 
 > A definite integral is the limit of Riemann-sum approximations as the number of rectangles increases and rectangle width approaches zero.
@@ -191,6 +193,8 @@ npm run lint
 ```
 
 ## Deployment (Vercel)
+
+Live app: https://riemann-sum-visualizer.vercel.app/
 
 1. Push repository to GitHub.
 2. In Vercel: New Project -> Import repository.
